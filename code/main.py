@@ -1,6 +1,7 @@
 import pygame
 from pacman import PacMan
 from mappy import Map
+from algo import astar
 # region GLOBAL VARS
 
 # region SIZES
@@ -88,6 +89,28 @@ def update(state: int):
     pygame.display.update()
 
 
+def get_actions_from_path(path: list) -> list:
+    '''Nhận vào list các tuple là tọa độ những điểm cần đi qua để đi từ start tới end.
+    Trả về list các string là mảng các action tương ứng để đi từ 1 điểm tới điểm kế tiếp'''
+    current_position = path[0]
+    actions = []
+    # Lưu ý:
+    # node_position[0] là row trong grid -> là tung của điểm
+    # node_position[1] là col trong grid -> là hoành của điểm
+
+    for next_position in path[1:]:
+        if next_position[0] == current_position[0] and next_position[1] - current_position[1] == 1:
+            actions.append("RIGHT")
+        elif next_position[0] == current_position[0] and next_position[1] - current_position[1] == -1:
+            actions.append("LEFT")
+        elif next_position[1] == current_position[1] and next_position[0] - current_position[0] == 1:
+            actions.append("DOWN")
+        elif next_position[1] == current_position[1] and next_position[0] - current_position[0] == -1:
+            actions.append("UP")
+        current_position = next_position
+    return actions
+
+
 # endregion
 my_map = Map()
 my_pac = PacMan()
@@ -106,4 +129,10 @@ while running:
             handle_keyboard(event)
 
     my_pac.move(direction, my_map)
+    start = (0, 0)
+    end = (my_pac.cord_y, my_pac.cord_x)
+    path = astar(my_map.grid, start, end)
+    print("Path:", path)
+    if path is not None:
+        print("Actions:", get_actions_from_path(path))
     clock.tick(FPS)
