@@ -7,7 +7,7 @@ from algo import astar
 
 # region SIZES
 WIDTH, HEIGHT = 850, 550
-BLOCK_SIZE = 20
+BLOCK_SIZE = 40
 # endregion
 
 # region COLORS
@@ -27,12 +27,17 @@ WALL = pygame.transform.scale(WALL, (BLOCK_SIZE, BLOCK_SIZE))
 BLANK = pygame.image.load('img/black.png')
 BLANK = pygame.transform.scale(BLANK, (BLOCK_SIZE, BLOCK_SIZE))
 
+DOT = pygame.image.load('img/dot.png')
+DOT = pygame.transform.scale(DOT, (BLOCK_SIZE, BLOCK_SIZE))
+
 PACMAN = pygame.image.load('img/pac.png')
 PACMAN = pygame.transform.scale(PACMAN, (BLOCK_SIZE, BLOCK_SIZE))
 PACMAN2 = pygame.image.load('img/pac2.png')
 PACMAN2 = pygame.transform.scale(PACMAN2, (BLOCK_SIZE, BLOCK_SIZE))
-GHOST = pygame.image.load('img/ghost.png')
-GHOST = pygame.transform.scale(GHOST, (BLOCK_SIZE, BLOCK_SIZE))
+GHOST0 = pygame.image.load('img/ghost0.png')
+GHOST0 = pygame.transform.scale(GHOST0, (BLOCK_SIZE, BLOCK_SIZE))
+GHOST1 = pygame.image.load('img/ghost1.png')
+GHOST1 = pygame.transform.scale(GHOST1, (BLOCK_SIZE, BLOCK_SIZE))
 # endregion
 
 # region OTHERS
@@ -59,6 +64,10 @@ def draw_map(map: Map):
                 posx = idx_col * BLOCK_SIZE
                 posy = idx_row * BLOCK_SIZE
                 WIN.blit(WALL, (posx, posy))
+            elif val == 1:
+                posx = idx_col * BLOCK_SIZE
+                posy = idx_row * BLOCK_SIZE
+                WIN.blit(DOT, (posx, posy))
 
 
 def draw_pac(pacman: PacMan, state: int = 1):
@@ -68,8 +77,8 @@ def draw_pac(pacman: PacMan, state: int = 1):
         WIN.blit(PACMAN2, (pacman.cord_x*BLOCK_SIZE, pacman.cord_y*BLOCK_SIZE))
 
 
-def draw_ghost(ghost: Ghost):
-    WIN.blit(GHOST, (ghost.cord_x*BLOCK_SIZE, ghost.cord_y*BLOCK_SIZE))
+def draw_ghost(ghost: Ghost, img_ghost):
+    WIN.blit(img_ghost, (ghost.cord_x*BLOCK_SIZE, ghost.cord_y*BLOCK_SIZE))
 
 
 def handle_keyboard(event):
@@ -93,8 +102,8 @@ def update(state: int):
     clock.tick(10)
     draw_map(my_map)
     draw_pac(my_pac, state)
-    draw_ghost(my_ghost0)
-    draw_ghost(my_ghost1)
+    draw_ghost(my_ghost0, GHOST0)
+    draw_ghost(my_ghost1, GHOST1)
     pygame.display.update()
 
 
