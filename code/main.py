@@ -1,4 +1,5 @@
 import pygame
+from ghost import Ghost
 from pacman import PacMan
 from mappy import Map
 from algo import astar
@@ -30,6 +31,8 @@ PACMAN = pygame.image.load('img/pac.png')
 PACMAN = pygame.transform.scale(PACMAN, (BLOCK_SIZE, BLOCK_SIZE))
 PACMAN2 = pygame.image.load('img/pac2.png')
 PACMAN2 = pygame.transform.scale(PACMAN2, (BLOCK_SIZE, BLOCK_SIZE))
+GHOST = pygame.image.load('img/ghost.png')
+GHOST = pygame.transform.scale(GHOST, (BLOCK_SIZE, BLOCK_SIZE))
 # endregion
 
 # region OTHERS
@@ -65,6 +68,10 @@ def draw_pac(pacman: PacMan, state: int = 1):
         WIN.blit(PACMAN2, (pacman.cord_x*BLOCK_SIZE, pacman.cord_y*BLOCK_SIZE))
 
 
+def draw_ghost(ghost: Ghost):
+    WIN.blit(GHOST, (ghost.cord_x*BLOCK_SIZE, ghost.cord_y*BLOCK_SIZE))
+
+
 def handle_keyboard(event):
     '''Đổi direction nhưng chưa cập nhật tọa độ pacman'''
     global direction
@@ -86,6 +93,8 @@ def update(state: int):
     clock.tick(10)
     draw_map(my_map)
     draw_pac(my_pac, state)
+    draw_ghost(my_ghost0)
+    draw_ghost(my_ghost1)
     pygame.display.update()
 
 
@@ -114,9 +123,15 @@ def get_actions_from_path(path: list) -> list:
 # endregion
 my_map = Map()
 my_pac = PacMan()
+my_ghost0 = Ghost()
+my_ghost1 = Ghost()
+my_ghost1.cord_x = 5
+my_ghost1.cord_y = 6
+my_ghost2 = Ghost()
 running = True
 clock = pygame.time.Clock()
 direction = "RIGHT"
+ghost_turn = False
 
 while running:
     update(1)
@@ -129,10 +144,30 @@ while running:
             handle_keyboard(event)
 
     my_pac.move(direction, my_map)
-    start = (0, 0)
-    end = (my_pac.cord_y, my_pac.cord_x)
-    path = astar(my_map.grid, start, end)
-    print("Path:", path)
-    if path is not None:
-        print("Actions:", get_actions_from_path(path))
+    if ghost_turn:
+        # ghost 0 di chuyển
+        start0 = (my_ghost0.cord_y, my_ghost0.cord_x)
+        end = (my_pac.cord_y, my_pac.cord_x)
+        path0 = astar(my_map.grid, start0, end)
+        if path0 is not None:
+            actions = get_actions_from_path(path0)
+            my_ghost0.move(actions[0])
+        else:
+            pass
+
+        # ghost 1 di chuyển
+        start1 = (my_ghost1.cord_y, my_ghost1.cord_x)
+        end = (my_pac.cord_y, my_pac.cord_x)
+        path1 = astar(my_map.grid, start1, end)
+        if path1 is not None:
+            actions = get_actions_from_path(path1)
+            my_ghost1.move(actions[0])
+        else:
+            pass
+
+        # chỉnh cho frame sau ghost đứng yên vì không làm thay đổi tọa độ
+        ghost_turn = False
+    else:
+        ghost_turn = True
+
     clock.tick(FPS)
