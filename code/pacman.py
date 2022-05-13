@@ -3,10 +3,10 @@ from mappy import Map
 
 
 class PacMan():
-    def __init__(self) -> None:
+    def __init__(self, cord_x, cord_y) -> None:
         self.score = 0
-        self.cord_x = 2
-        self.cord_y = 2
+        self.cord_x = cord_x
+        self.cord_y = cord_y
 
     def move(self, direction: str, map: Map):
         '''Thực hiện di chuyển thử thay đổi tọa độ. 

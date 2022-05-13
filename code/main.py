@@ -1,4 +1,5 @@
 import pygame
+from time import sleep
 from ghost import Ghost
 from pacman import PacMan
 from mappy import Map
@@ -8,6 +9,8 @@ from algo import astar
 # region SIZES
 WIDTH, HEIGHT = 850, 550
 BLOCK_SIZE = 40
+pygame.init()
+FONT = pygame.font.Font('freesansbold.ttf', 32)
 # endregion
 
 # region COLORS
@@ -129,14 +132,27 @@ def get_actions_from_path(path: list) -> list:
     return actions
 
 
+def check_lose(pac: PacMan, ghost: Ghost) -> bool:
+    '''Thua là khi pac đụng vô ghost'''
+    if pac.cord_x == ghost.cord_x and pac.cord_y == ghost.cord_y:
+        return True
+    return False
+
+
+def check_win(map: Map) -> bool:
+    '''Thắng là khi trên bản đồ không còn ô nào chứa dot(giá trị 1)'''
+    if map.remaining_diem() == 0:
+        return True
+    elif map.remaining_diem() > 0:
+        return False
+
+
 # endregion
 my_map = Map()
-my_pac = PacMan()
-my_ghost0 = Ghost()
-my_ghost1 = Ghost()
-my_ghost1.cord_x = 5
-my_ghost1.cord_y = 6
-my_ghost2 = Ghost()
+my_pac = PacMan(2, 2)
+my_ghost0 = Ghost(0, 0)
+my_ghost1 = Ghost(5, 6)
+#my_ghost2 = Ghost()
 running = True
 clock = pygame.time.Clock()
 direction = "RIGHT"
@@ -178,5 +194,27 @@ while running:
         ghost_turn = False
     else:
         ghost_turn = True
+
+    # kiểm tra thắng thua
+    if check_lose(my_pac, my_ghost0) or check_lose(my_pac, my_ghost1):
+        WIN.fill(COLOR_RED)
+        lose_text = FONT.render('You lose', True, COLOR_BLACK, COLOR_BLUE)
+        lose_text_rect = lose_text.get_rect()
+        lose_text_rect.center = (300, 200)
+        WIN.blit(lose_text, lose_text_rect)
+        pygame.display.update()
+        sleep(1)
+        running = False
+        continue
+
+    if check_win(my_map):
+        WIN.fill(COLOR_GREEN)
+        win_text = FONT.render('You win', True, COLOR_BLACK, COLOR_BLUE)
+        win_text_rect = win_text.get_rect()
+        win_text_rect.center = (200, 200)
+        WIN.blit(win_text, win_text_rect)
+        pygame.display.update()
+        sleep(1)
+        running = False
 
     clock.tick(FPS)
