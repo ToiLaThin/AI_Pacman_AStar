@@ -1,4 +1,5 @@
 import pygame
+import pygame_menu
 from time import sleep
 from ghost import Ghost
 from pacman import PacMan
@@ -48,9 +49,6 @@ FPS = 60
 # endregion
 
 # endregion
-
-WIN = pygame.display.set_mode((WIDTH, HEIGHT))
-pygame.display.set_caption("Ve Map Pygame")
 
 # region UTILS FUNCTION
 
@@ -155,68 +153,110 @@ def get_text(text: str, text_color, cord_x, cord_y):
 
 
 # endregion
+
+# region PYGAME_MENU
+
+
+# endregion
+WIN = pygame.display.set_mode((WIDTH, HEIGHT))
+pygame.display.set_caption("Game Pacman Special Edition Nhom 3")
+
 my_map = Map()
 my_pac = PacMan(2, 2)
 my_ghost0 = Ghost(0, 0)
 my_ghost1 = Ghost(5, 6)
-#my_ghost2 = Ghost()
-running = True
 clock = pygame.time.Clock()
 direction = "RIGHT"
-ghost_turn = False
+gaming = False
+resulting = False
+#my_ghost2 = Ghost()
 
-while running:
-    update(1)
-    update(2)
-    for event in pygame.event.get():
-        if event.type == pygame.QUIT:
-            running = False
+
+def reset_game():
+    global my_map, my_pac, my_ghost0, my_ghost1, resulting
+    my_map = Map()
+    my_pac = PacMan(2, 2)
+    my_ghost0 = Ghost(0, 0)
+    my_ghost1 = Ghost(5, 6)
+    resulting = False
+
+
+def game_loop():
+    '''Vòng lặp chính của game'''
+    global clock, direction, gaming
+    ghost_turn = False
+    gaming = True
+    while gaming:
+        # vẽ frame
+        update(1)
+        update(2)
+
+        # kiểm tra thắng thua
+        if check_lose(my_pac, my_ghost0) or check_lose(my_pac, my_ghost1):
+            result_loop(True)
             continue
-        if event.type == pygame.KEYDOWN:
-            handle_keyboard(event)
+        if check_win(my_map):
+            result_loop(False)
+            continue
 
-    my_pac.move(direction, my_map)
-    if ghost_turn:
-        # ghost 0 di chuyển
-        start0 = (my_ghost0.cord_y, my_ghost0.cord_x)
-        end = (my_pac.cord_y, my_pac.cord_x)
-        path0 = astar(my_map.grid, start0, end)
-        if path0 is not None:
-            actions = get_actions_from_path(path0)
-            my_ghost0.move(actions[0])
+        for event in pygame.event.get():
+            if event.type == pygame.QUIT:
+                gaming = False
+                continue
+            if event.type == pygame.KEYDOWN:
+                handle_keyboard(event)
+
+        my_pac.move(direction, my_map)
+        if ghost_turn:
+            # ghost 0 di chuyển
+            start0 = (my_ghost0.cord_y, my_ghost0.cord_x)
+            end = (my_pac.cord_y, my_pac.cord_x)
+            path0 = astar(my_map.grid, start0, end)
+            if path0 is not None:
+                actions = get_actions_from_path(path0)
+                my_ghost0.move(actions[0])
+            else:
+                pass
+
+            # ghost 1 di chuyển
+            start1 = (my_ghost1.cord_y, my_ghost1.cord_x)
+            end = (my_pac.cord_y, my_pac.cord_x)
+            path1 = astar(my_map.grid, start1, end)
+            if path1 is not None:
+                actions = get_actions_from_path(path1)
+                my_ghost1.move(actions[0])
+            else:
+                pass
+            # chỉnh cho frame sau ghost đứng yên vì không làm thay đổi tọa độ
+            ghost_turn = False
         else:
-            pass
+            ghost_turn = True
+        clock.tick(FPS)
 
-        # ghost 1 di chuyển
-        start1 = (my_ghost1.cord_y, my_ghost1.cord_x)
-        end = (my_pac.cord_y, my_pac.cord_x)
-        path1 = astar(my_map.grid, start1, end)
-        if path1 is not None:
-            actions = get_actions_from_path(path1)
-            my_ghost1.move(actions[0])
-        else:
-            pass
 
-        # chỉnh cho frame sau ghost đứng yên vì không làm thay đổi tọa độ
-        ghost_turn = False
-    else:
-        ghost_turn = True
-
-    # kiểm tra thắng thua
-    if check_lose(my_pac, my_ghost0) or check_lose(my_pac, my_ghost1):
-        WIN.fill(COLOR_RED)
-        get_text("Wasted.Killed by Ghosts", COLOR_BLACK, WIDTH//2, HEIGHT//2)
+def result_loop(lost: bool):
+    '''Vòng lặp kết quả khi thắng hoặc thua'''
+    resulting = True
+    if lost:
+        color_fill = COLOR_RED
+        text_display = "Wasted.Killed by Ghosts"
+    elif not lost:
+        color_fill = COLOR_GREEN
+        text_display = f"Get all dots.Well done !!!Total Scores:{my_pac.score}"
+    while resulting:
+        WIN.fill(color_fill)
+        get_text(text_display, COLOR_BLACK, WIDTH//2, HEIGHT//2)
+        get_text("Press 1 to continue playing",
+                 COLOR_BLACK, WIDTH//2, HEIGHT//2 + 50)
+        get_text("Press 2 to go to menu", COLOR_BLACK,
+                 WIDTH//2, HEIGHT//2 + 100)
+        get_text("Press 3 to exit", COLOR_BLACK, WIDTH//2, HEIGHT//2 + 150)
         pygame.display.update()
-        sleep(1)
-        running = False
-        continue
+        for event in pygame.event.get():
+            if event.type == pygame.KEYDOWN:
+                resulting = False
+                reset_game()
 
-    if check_win(my_map):
-        WIN.fill(COLOR_GREEN)
-        get_text("Get all dots.Well done !!!",
-                 COLOR_BLACK, WIDTH//2, HEIGHT//2)
-        pygame.display.update()
-        sleep(1)
-        running = False
 
-    clock.tick(FPS)
+if __name__ == '__main__':
+    game_loop()
