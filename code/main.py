@@ -147,6 +147,14 @@ def check_win(map: Map) -> bool:
         return False
 
 
+def display_text(text: str, text_color, cord_x, cord_y):
+    '''Viết chữ nội dung bất kỳ với màu và tọa độ được chỉ định'''
+    text_display = FONT.render(text, True, text_color)
+    text_surface = text_display.get_rect()
+    text_surface.center = (cord_x, cord_y)
+    WIN.blit(text_display, text_surface)
+
+
 # endregion
 my_map = Map()
 my_pac = PacMan(2, 2)
@@ -198,10 +206,8 @@ while running:
     # kiểm tra thắng thua
     if check_lose(my_pac, my_ghost0) or check_lose(my_pac, my_ghost1):
         WIN.fill(COLOR_RED)
-        lose_text = FONT.render('You lose', True, COLOR_BLACK, COLOR_BLUE)
-        lose_text_rect = lose_text.get_rect()
-        lose_text_rect.center = (300, 200)
-        WIN.blit(lose_text, lose_text_rect)
+        display_text("Wasted.Killed by Ghost",
+                     COLOR_BLACK, WIDTH//2, HEIGHT//2)
         pygame.display.update()
         sleep(1)
         running = False
@@ -209,10 +215,8 @@ while running:
 
     if check_win(my_map):
         WIN.fill(COLOR_GREEN)
-        win_text = FONT.render('You win', True, COLOR_BLACK, COLOR_BLUE)
-        win_text_rect = win_text.get_rect()
-        win_text_rect.center = (200, 200)
-        WIN.blit(win_text, win_text_rect)
+        display_text("Got all dots.Well Done!!!",
+                     COLOR_BLACK, WIDTH//2, HEIGHT//2)
         pygame.display.update()
         sleep(1)
         running = False
