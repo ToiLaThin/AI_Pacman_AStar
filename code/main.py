@@ -1,16 +1,18 @@
 import pygame
 import pygame_menu
+import os
 from time import sleep
 from ghost import Ghost
 from pacman import PacMan
 from mappy import Map
 from algo import astar
+pygame.init()
+
 # region GLOBAL VARS
 
 # region SIZES
 WIDTH, HEIGHT = 850, 550
 BLOCK_SIZE = 40
-pygame.init()
 FONT = pygame.font.Font('freesansbold.ttf', 32)
 # endregion
 
@@ -154,12 +156,22 @@ def get_text(text: str, text_color, cord_x, cord_y):
 
 # endregion
 
-# region PYGAME_MENU
-
-
-# endregion
 WIN = pygame.display.set_mode((WIDTH, HEIGHT))
+
 pygame.display.set_caption("Game Pacman Special Edition Nhom 3")
+# region PYGAME_MENU
+MENU_FONT = pygame_menu.font.FONT_8BIT
+MENU_BACKGROUND_IMG = pygame_menu.baseimage.BaseImage(
+    image_path=os.path.join('img', 'brick.jpg'), drawing_mode=pygame_menu.baseimage.IMAGE_MODE_REPEAT_XY)
+MENU_SELECTION_EFFECT1 = pygame_menu.widgets.LeftArrowSelection(
+    arrow_size=(10, 15), arrow_right_margin=5, arrow_vertical_offset=0, blink_ms=0)
+MENU_SELECTION_EFFECT2 = pygame_menu.widgets.HighlightSelection(
+    border_width=4, margin_x=2, margin_y=1)
+MENU_THEME = pygame_menu.Theme(background_color=MENU_BACKGROUND_IMG, title_background_color=(2, 2, 2), title_font=MENU_FONT, title_font_size=22, title_font_color=COLOR_WHITE,
+                               widget_font=MENU_FONT, widget_font_size=18, widget_font_color=COLOR_YELLOW, widget_selection_effect=MENU_SELECTION_EFFECT1, selection_color=COLOR_RED)
+MENU = pygame_menu.Menu("PACMAN SPECIAL EDITION NHOM 3", WIDTH - 200, HEIGHT - 200,
+                        theme=MENU_THEME)
+# endregion
 
 my_map = Map()
 my_pac = PacMan(2, 2)
@@ -173,19 +185,30 @@ resulting = False
 
 
 def reset_game():
-    global my_map, my_pac, my_ghost0, my_ghost1, resulting
+    '''Sẽ đc dùng để chỉnh độ khó cho game.
+    Khởi tạo lại game.
+    Đặt cờ gaming = True và resulting = False.'''
+    global my_map, my_pac, my_ghost0, my_ghost1, resulting, gaming, direction
     my_map = Map()
     my_pac = PacMan(2, 2)
     my_ghost0 = Ghost(0, 0)
     my_ghost1 = Ghost(5, 6)
+    direction = "RIGHT"
+    gaming = True
     resulting = False
+
+
+def back_menu():
+    global gaming
+    reset_game()
+    gaming = False
 
 
 def game_loop():
     '''Vòng lặp chính của game'''
     global clock, direction, gaming
+    reset_game()  # reset game sẽ cho gaming = True và resulting = False
     ghost_turn = False
-    gaming = True
     while gaming:
         # vẽ frame
         update(1)
@@ -202,7 +225,8 @@ def game_loop():
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
                 gaming = False
-                continue
+                pygame.quit()
+                exit()
             if event.type == pygame.KEYDOWN:
                 handle_keyboard(event)
 
@@ -236,6 +260,7 @@ def game_loop():
 
 def result_loop(lost: bool):
     '''Vòng lặp kết quả khi thắng hoặc thua'''
+    global gaming, resulting
     resulting = True
     if lost:
         color_fill = COLOR_RED
@@ -244,19 +269,33 @@ def result_loop(lost: bool):
         color_fill = COLOR_GREEN
         text_display = f"Get all dots.Well done !!!Total Scores:{my_pac.score}"
     while resulting:
+
         WIN.fill(color_fill)
         get_text(text_display, COLOR_BLACK, WIDTH//2, HEIGHT//2)
-        get_text("Press 1 to continue playing",
+        get_text("Press 1 to replay",
                  COLOR_BLACK, WIDTH//2, HEIGHT//2 + 50)
         get_text("Press 2 to go to menu", COLOR_BLACK,
                  WIDTH//2, HEIGHT//2 + 100)
         get_text("Press 3 to exit", COLOR_BLACK, WIDTH//2, HEIGHT//2 + 150)
+
         pygame.display.update()
         for event in pygame.event.get():
             if event.type == pygame.KEYDOWN:
-                resulting = False
-                reset_game()
+                if event.key == pygame.K_1:
+                    # thoát resulting loop -> gameloop:replay game
+                    reset_game()
+                elif event.key == pygame.K_2:
+                    # thoát resulting loop và cả game loop -> về menu
+                    back_menu()
+                elif event.key == pygame.K_3:
+                    pygame.quit()
+                    exit()
 
 
 if __name__ == '__main__':
-    game_loop()
+    MENU.add.selector(
+        'Mode ', [('Hard', 1), ('Easy', 2)], selection_effect=MENU_SELECTION_EFFECT2)
+    MENU.add.button('Play', game_loop)
+    MENU.add.button('Quit', pygame_menu.events.EXIT)
+    # code của phần hiển thị menu lưu ý MENU.mainloop(WIN)
+    MENU.mainloop(WIN)
