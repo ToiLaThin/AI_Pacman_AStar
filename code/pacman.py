@@ -40,7 +40,7 @@ class PacMan():
 
     def cord_is_valid(self, map: Map) -> bool:
         '''Kiểm tra xem tọa độ của pacman hiện tai hợp lệ hay không'''
-        if 0 <= self.cord_x <= 9 and 0 <= self.cord_y <= 6:
+        if 0 <= self.cord_y <= len(map.grid) - 1 and 0 <= self.cord_x <= len(map.grid[len(map.grid) - 1])-1:
             if map.grid[self.cord_y][self.cord_x] != -1:
                 return True
         return False

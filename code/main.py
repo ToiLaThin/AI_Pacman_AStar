@@ -3,6 +3,7 @@
 # Boss Time - By David Renda https://www.fesliyanstudios.com/royalty-free-music/downloads-c/8-bit-music/6
 # endregion
 
+from ast import arg
 import pygame
 import pygame_menu
 from pygame_menu import sound
@@ -18,7 +19,7 @@ pygame.init()
 
 # region SIZES
 WIDTH, HEIGHT = 850, 550
-BLOCK_SIZE = 40
+BLOCK_SIZE = 20
 FONT = pygame.font.Font('freesansbold.ttf', 32)
 # endregion
 
@@ -51,8 +52,11 @@ pygame.mixer.music.load(os.path.join('sound', 'playing.mp3'))
 
 # endregion
 # region IMAGE
-WALL = pygame.image.load('img/brick.jpg')
-WALL = pygame.transform.scale(WALL, (BLOCK_SIZE, BLOCK_SIZE))
+WALL_EASY = pygame.image.load('img/brick.jpg')
+WALL_EASY = pygame.transform.scale(WALL_EASY, (BLOCK_SIZE, BLOCK_SIZE))
+
+WALL_HARD = pygame.image.load('img/neon.jpg')
+WALL_HARD = pygame.transform.scale(WALL_HARD, (BLOCK_SIZE, BLOCK_SIZE))
 
 BLANK = pygame.image.load('img/black.png')
 BLANK = pygame.transform.scale(BLANK, (BLOCK_SIZE, BLOCK_SIZE))
@@ -72,6 +76,7 @@ GHOST1 = pygame.transform.scale(GHOST1, (BLOCK_SIZE, BLOCK_SIZE))
 
 # region OTHERS
 FPS = 60
+DIFFICULTY = 1  # HARD
 # endregion
 
 # endregion
@@ -80,6 +85,11 @@ FPS = 60
 
 
 def draw_map(map: Map):
+    if DIFFICULTY == 0:
+        wall_to_draw = WALL_EASY
+    elif DIFFICULTY == 1:
+        wall_to_draw = WALL_HARD
+
     for idx_row in range(0, len(map.grid)):
         for idx_col in range(0, len(map.grid[idx_row])):
             val = map.grid[idx_row][idx_col]
@@ -90,7 +100,7 @@ def draw_map(map: Map):
             elif val == -1:
                 posx = idx_col * BLOCK_SIZE
                 posy = idx_row * BLOCK_SIZE
-                WIN.blit(WALL, (posx, posy))
+                WIN.blit(wall_to_draw, (posx, posy))
             elif val == 1:
                 posx = idx_col * BLOCK_SIZE
                 posy = idx_row * BLOCK_SIZE
@@ -178,7 +188,16 @@ def get_text(text: str, text_color, cord_x, cord_y):
     WIN.blit(display_text, text_surface)
 
 
+def change_difficulty(a, b):
+    # a va b khong de lam gi chi cho du  tham so
+    global DIFFICULTY
+    if DIFFICULTY == 0:
+        DIFFICULTY = 1
+    elif DIFFICULTY == 1:
+        DIFFICULTY = 0
+
 # endregion
+
 
 WIN = pygame.display.set_mode((WIDTH, HEIGHT))
 
@@ -197,7 +216,7 @@ MENU = pygame_menu.Menu("PACMAN SPECIAL EDITION NHOM 3", WIDTH - 200, HEIGHT - 2
                         theme=MENU_THEME)
 # endregion
 
-my_map = Map()
+my_map = None
 my_pac = PacMan(2, 2)
 my_ghost0 = Ghost(0, 0)
 my_ghost1 = Ghost(5, 6)
@@ -215,7 +234,7 @@ def reset_game():
     Khởi tạo lại game.
     Đặt cờ gaming = True và resulting = False.'''
     global my_map, my_pac, my_ghost0, my_ghost1, resulting, gaming, direction
-    my_map = Map()
+    my_map = Map(DIFFICULTY)
     my_pac = PacMan(2, 2)
     my_ghost0 = Ghost(0, 0)
     my_ghost1 = Ghost(5, 6)
@@ -225,7 +244,7 @@ def reset_game():
 
 
 def back_menu():
-    global gaming
+    global gaming, my_map
     reset_game()
     MENU_SOUND.play_open_menu()
     gaming = False
@@ -331,9 +350,8 @@ def result_loop(lost: bool):
 
 
 if __name__ == '__main__':
-    #
     MENU.add.selector(
-        'Mode ', [('Hard', 1), ('Easy', 2)], selection_effect=MENU_SELECTION_EFFECT2)
+        'Mode ', [('Hard', 1), ('Easy', 2)], selection_effect=MENU_SELECTION_EFFECT2, onchange=change_difficulty)
     MENU.add.button('Play', game_loop)
     MENU.add.button('Quit', pygame_menu.events.EXIT)
     MENU.set_sound(MENU_SOUND, recursive=True)
