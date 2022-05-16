@@ -1,12 +1,13 @@
 # region CREDIT
 # 8 Bit Adventure - By David Renda https://www.fesliyanstudios.com/royalty-free-music/downloads-c/8-bit-music/6
+# Boss Time - By David Renda https://www.fesliyanstudios.com/royalty-free-music/downloads-c/8-bit-music/6
 # endregion
 
 import pygame
 import pygame_menu
 from pygame_menu import sound
-import os
 from time import sleep
+import os
 from ghost import Ghost
 from pacman import PacMan
 from mappy import Map
@@ -32,13 +33,21 @@ COLOR_PURPLE = (255, 0, 255)
 # endregion
 
 # region SOUND
-SOUND = sound.Sound()
-SOUND.set_sound(sound.SOUND_TYPE_CLICK_MOUSE,
-                os.path.join('sound', 'click.mp3'), volume=1)
-SOUND.set_sound(sound.SOUND_TYPE_WIDGET_SELECTION,
-                os.path.join('sound', 'nav.mp3'), volume=1)
-SOUND.set_sound(sound.SOUND_TYPE_OPEN_MENU,
-                os.path.join('sound', 'intro.mp3'), volume=0.8, loops=1,)
+MENU_SOUND = sound.Sound()
+MENU_SOUND.set_sound(sound.SOUND_TYPE_CLICK_MOUSE,
+                     os.path.join('sound', 'click.mp3'), volume=1)
+MENU_SOUND.set_sound(sound.SOUND_TYPE_WIDGET_SELECTION,
+                     os.path.join('sound', 'nav.mp3'), volume=1)
+MENU_SOUND.set_sound(sound.SOUND_TYPE_OPEN_MENU,
+                     os.path.join('sound', 'intro.mp3'), volume=0.8, loops=1,)
+
+
+GAME_EAT_SOUND = pygame.mixer.Sound(os.path.join('sound', 'eat.mp3'))
+GAME_WIN_SOUND = pygame.mixer.Sound(os.path.join('sound', 'win.mp3'))
+GAME_LOST_SOUND = pygame.mixer.Sound(os.path.join('sound', 'lost.mp3'))
+PACMAN_DIE_SOUND = pygame.mixer.Sound(os.path.join('sound', 'die.mp3'))
+# GAME PLAYING MUSIC
+pygame.mixer.music.load(os.path.join('sound', 'playing.mp3'))
 
 # endregion
 # region IMAGE
@@ -218,6 +227,7 @@ def reset_game():
 def back_menu():
     global gaming
     reset_game()
+    MENU_SOUND.play_open_menu()
     gaming = False
 
 
@@ -225,6 +235,7 @@ def game_loop():
     '''Vòng lặp chính của game'''
     global clock, direction, gaming
     reset_game()  # reset game sẽ cho gaming = True và resulting = False
+    pygame.mixer.music.play(-1)
     ghost_turn = False
     while gaming:
         # vẽ frame
@@ -233,9 +244,13 @@ def game_loop():
 
         # kiểm tra thắng thua
         if check_lose(my_pac, my_ghost0) or check_lose(my_pac, my_ghost1):
+            pygame.mixer.music.stop()
+            pygame.mixer.Sound.play(PACMAN_DIE_SOUND)
+            sleep(1.5)
             result_loop(True)
             continue
         if check_win(my_map):
+            pygame.mixer.music.stop()
             result_loop(False)
             continue
 
@@ -247,7 +262,9 @@ def game_loop():
             if event.type == pygame.KEYDOWN:
                 handle_keyboard(event)
 
-        my_pac.move(direction, my_map)
+        if my_pac.move(direction, my_map) is True:  # True là gặp dot
+            pygame.mixer.Sound.play(GAME_EAT_SOUND)
+
         if ghost_turn:
             # ghost 0 di chuyển
             start0 = (my_ghost0.cord_y, my_ghost0.cord_x)
@@ -282,9 +299,11 @@ def result_loop(lost: bool):
     if lost:
         color_fill = COLOR_RED
         text_display = "Wasted.Killed by Ghosts"
+        pygame.mixer.Sound.play(GAME_LOST_SOUND)
     elif not lost:
         color_fill = COLOR_GREEN
         text_display = f"Get all dots.Well done !!!Total Scores:{my_pac.score}"
+        pygame.mixer.Sound.play(GAME_WIN_SOUND)
     while resulting:
 
         WIN.fill(color_fill)
@@ -301,6 +320,7 @@ def result_loop(lost: bool):
                 if event.key == pygame.K_1:
                     # thoát resulting loop -> gameloop:replay game
                     reset_game()
+                    pygame.mixer.music.play(-1)
                 elif event.key == pygame.K_2:
                     # thoát resulting loop và cả game loop -> về menu
                     back_menu()
@@ -316,6 +336,7 @@ if __name__ == '__main__':
         'Mode ', [('Hard', 1), ('Easy', 2)], selection_effect=MENU_SELECTION_EFFECT2)
     MENU.add.button('Play', game_loop)
     MENU.add.button('Quit', pygame_menu.events.EXIT)
-    MENU.set_sound(SOUND, recursive=True)
+    MENU.set_sound(MENU_SOUND, recursive=True)
     # code của phần hiển thị menu lưu ý MENU.mainloop(WIN)
+    MENU_SOUND.play_open_menu()
     MENU.mainloop(WIN)

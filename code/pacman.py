@@ -1,4 +1,3 @@
-from tkinter import LEFT
 from mappy import Map
 
 
@@ -36,6 +35,8 @@ class PacMan():
         if map.grid[self.cord_y][self.cord_x] != 0:
             self.score += map.grid[self.cord_y][self.cord_x]
             map.grid[self.cord_y][self.cord_x] = 0
+            return True
+        return False
 
     def cord_is_valid(self, map: Map) -> bool:
         '''Kiểm tra xem tọa độ của pacman hiện tai hợp lệ hay không'''
