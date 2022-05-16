@@ -1,5 +1,6 @@
 from queue import PriorityQueue
 
+
 class Node():
     """A node class for A* search"""
 
@@ -13,6 +14,7 @@ class Node():
 
     def __eq__(self, other):
         return self.position == other.position
+
 
 def astar(maze, start, end):
     # Create start and end node

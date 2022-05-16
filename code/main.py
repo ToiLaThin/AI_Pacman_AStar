@@ -1,5 +1,10 @@
+# region CREDIT
+# 8 Bit Adventure - By David Renda https://www.fesliyanstudios.com/royalty-free-music/downloads-c/8-bit-music/6
+# endregion
+
 import pygame
 import pygame_menu
+from pygame_menu import sound
 import os
 from time import sleep
 from ghost import Ghost
@@ -26,6 +31,16 @@ COLOR_YELLOW = (255, 255, 0)
 COLOR_PURPLE = (255, 0, 255)
 # endregion
 
+# region SOUND
+SOUND = sound.Sound()
+SOUND.set_sound(sound.SOUND_TYPE_CLICK_MOUSE,
+                os.path.join('sound', 'click.mp3'), volume=1)
+SOUND.set_sound(sound.SOUND_TYPE_WIDGET_SELECTION,
+                os.path.join('sound', 'nav.mp3'), volume=1)
+SOUND.set_sound(sound.SOUND_TYPE_OPEN_MENU,
+                os.path.join('sound', 'intro.mp3'), volume=0.8, loops=1,)
+
+# endregion
 # region IMAGE
 WALL = pygame.image.load('img/brick.jpg')
 WALL = pygame.transform.scale(WALL, (BLOCK_SIZE, BLOCK_SIZE))
@@ -162,7 +177,7 @@ pygame.display.set_caption("Game Pacman Special Edition Nhom 3")
 # region PYGAME_MENU
 MENU_FONT = pygame_menu.font.FONT_8BIT
 MENU_BACKGROUND_IMG = pygame_menu.baseimage.BaseImage(
-    image_path=os.path.join('img', 'brick.jpg'), drawing_mode=pygame_menu.baseimage.IMAGE_MODE_REPEAT_XY)
+    image_path=os.path.join('img', 'title.jpg'), drawing_mode=pygame_menu.baseimage.IMAGE_MODE_FILL)
 MENU_SELECTION_EFFECT1 = pygame_menu.widgets.LeftArrowSelection(
     arrow_size=(10, 15), arrow_right_margin=5, arrow_vertical_offset=0, blink_ms=0)
 MENU_SELECTION_EFFECT2 = pygame_menu.widgets.HighlightSelection(
@@ -182,6 +197,8 @@ direction = "RIGHT"
 gaming = False
 resulting = False
 #my_ghost2 = Ghost()
+
+# region LOOPS
 
 
 def reset_game():
@@ -290,12 +307,15 @@ def result_loop(lost: bool):
                 elif event.key == pygame.K_3:
                     pygame.quit()
                     exit()
+# endregion
 
 
 if __name__ == '__main__':
+    #
     MENU.add.selector(
         'Mode ', [('Hard', 1), ('Easy', 2)], selection_effect=MENU_SELECTION_EFFECT2)
     MENU.add.button('Play', game_loop)
     MENU.add.button('Quit', pygame_menu.events.EXIT)
+    MENU.set_sound(SOUND, recursive=True)
     # code của phần hiển thị menu lưu ý MENU.mainloop(WIN)
     MENU.mainloop(WIN)
