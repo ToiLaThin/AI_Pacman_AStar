@@ -4,6 +4,7 @@
 # endregion
 
 from ast import arg
+from tarfile import BLOCKSIZE
 import pygame
 import pygame_menu
 from pygame_menu import sound
@@ -19,7 +20,7 @@ pygame.init()
 
 # region SIZES
 WIDTH, HEIGHT = 850, 550
-BLOCK_SIZE = 20
+BLOCK_SIZE = 28
 FONT = pygame.font.Font('freesansbold.ttf', 32)
 # endregion
 
@@ -53,25 +54,14 @@ pygame.mixer.music.load(os.path.join('sound', 'playing.mp3'))
 # endregion
 # region IMAGE
 WALL_EASY = pygame.image.load('img/brick.jpg')
-WALL_EASY = pygame.transform.scale(WALL_EASY, (BLOCK_SIZE, BLOCK_SIZE))
-
 WALL_HARD = pygame.image.load('img/neon.jpg')
-WALL_HARD = pygame.transform.scale(WALL_HARD, (BLOCK_SIZE, BLOCK_SIZE))
-
 BLANK = pygame.image.load('img/black.png')
-BLANK = pygame.transform.scale(BLANK, (BLOCK_SIZE, BLOCK_SIZE))
-
 DOT = pygame.image.load('img/dot.png')
-DOT = pygame.transform.scale(DOT, (BLOCK_SIZE, BLOCK_SIZE))
-
 PACMAN = pygame.image.load('img/pac.png')
-PACMAN = pygame.transform.scale(PACMAN, (BLOCK_SIZE, BLOCK_SIZE))
 PACMAN2 = pygame.image.load('img/pac2.png')
-PACMAN2 = pygame.transform.scale(PACMAN2, (BLOCK_SIZE, BLOCK_SIZE))
 GHOST0 = pygame.image.load('img/ghost0.png')
-GHOST0 = pygame.transform.scale(GHOST0, (BLOCK_SIZE, BLOCK_SIZE))
 GHOST1 = pygame.image.load('img/ghost1.png')
-GHOST1 = pygame.transform.scale(GHOST1, (BLOCK_SIZE, BLOCK_SIZE))
+GHOST2 = pygame.image.load('img/ghost2.gif')
 # endregion
 
 # region OTHERS
@@ -118,6 +108,20 @@ def draw_ghost(ghost: Ghost, img_ghost):
     WIN.blit(img_ghost, (ghost.cord_x*BLOCK_SIZE, ghost.cord_y*BLOCK_SIZE))
 
 
+def resize_image():
+    global BLOCK_SIZE, WALL_EASY, WALL_HARD, DOT, BLANK
+    global GHOST0, GHOST1, GHOST2, PACMAN, PACMAN2
+    WALL_EASY = pygame.transform.scale(WALL_EASY, (BLOCK_SIZE, BLOCK_SIZE))
+    WALL_HARD = pygame.transform.scale(WALL_HARD, (BLOCK_SIZE, BLOCK_SIZE))
+    BLANK = pygame.transform.scale(BLANK, (BLOCK_SIZE, BLOCK_SIZE))
+    DOT = pygame.transform.scale(DOT, (BLOCK_SIZE, BLOCK_SIZE))
+    PACMAN = pygame.transform.scale(PACMAN, (BLOCK_SIZE, BLOCK_SIZE))
+    PACMAN2 = pygame.transform.scale(PACMAN2, (BLOCK_SIZE, BLOCK_SIZE))
+    GHOST0 = pygame.transform.scale(GHOST0, (BLOCK_SIZE, BLOCK_SIZE))
+    GHOST1 = pygame.transform.scale(GHOST1, (BLOCK_SIZE, BLOCK_SIZE))
+    GHOST2 = pygame.transform.scale(GHOST2, (BLOCK_SIZE, BLOCK_SIZE))
+
+
 def handle_keyboard(event):
     '''Đổi direction nhưng chưa cập nhật tọa độ pacman'''
     global direction
@@ -141,6 +145,8 @@ def update(state: int):
     draw_pac(my_pac, state)
     draw_ghost(my_ghost0, GHOST0)
     draw_ghost(my_ghost1, GHOST1)
+    if DIFFICULTY == 1:
+        draw_ghost(my_ghost2, GHOST2)
     pygame.display.update()
 
 
@@ -218,8 +224,10 @@ MENU = pygame_menu.Menu("PACMAN SPECIAL EDITION NHOM 3", WIDTH - 200, HEIGHT - 2
 
 my_map = None
 my_pac = PacMan(2, 2)
-my_ghost0 = Ghost(0, 0)
-my_ghost1 = Ghost(5, 6)
+my_ghost0 = Ghost(0, 0, 4)
+my_ghost1 = Ghost(5, 6, 6)
+my_ghost2 = Ghost(9, 9, 2)
+
 clock = pygame.time.Clock()
 direction = "RIGHT"
 gaming = False
@@ -233,14 +241,24 @@ def reset_game():
     '''Sẽ đc dùng để chỉnh độ khó cho game.
     Khởi tạo lại game.
     Đặt cờ gaming = True và resulting = False.'''
-    global my_map, my_pac, my_ghost0, my_ghost1, resulting, gaming, direction
+    global my_map, my_pac, my_ghost0, my_ghost1, my_ghost2, resulting, gaming, direction
+    global BLOCK_SIZE
     my_map = Map(DIFFICULTY)
     my_pac = PacMan(2, 2)
-    my_ghost0 = Ghost(0, 0)
-    my_ghost1 = Ghost(5, 6)
+    if DIFFICULTY == 0:
+        my_ghost0 = Ghost(0, 0, 2)
+        my_ghost1 = Ghost(5, 6, 1)
+        BLOCK_SIZE = 50
+    elif DIFFICULTY == 1:
+        my_ghost0 = Ghost(0, 0, 4)
+        my_ghost1 = Ghost(22, 16, 6)
+        my_ghost2 = Ghost(9, 8, 2)
+        BLOCK_SIZE = 28
+
     direction = "RIGHT"
     gaming = True
     resulting = False
+    resize_image()  # cần resize lại các image sau khi đổi block size tùy theo độ khó
 
 
 def back_menu():
@@ -255,19 +273,27 @@ def game_loop():
     global clock, direction, gaming
     reset_game()  # reset game sẽ cho gaming = True và resulting = False
     pygame.mixer.music.play(-1)
-    ghost_turn = False
     while gaming:
         # vẽ frame
         update(1)
         update(2)
 
         # kiểm tra thắng thua
-        if check_lose(my_pac, my_ghost0) or check_lose(my_pac, my_ghost1):
-            pygame.mixer.music.stop()
-            pygame.mixer.Sound.play(PACMAN_DIE_SOUND)
-            sleep(1.5)
-            result_loop(True)
-            continue
+        if DIFFICULTY == 1:
+            if check_lose(my_pac, my_ghost0) or check_lose(my_pac, my_ghost1) or check_lose(my_pac, my_ghost2):
+                pygame.mixer.music.stop()
+                pygame.mixer.Sound.play(PACMAN_DIE_SOUND)
+                sleep(1.5)
+                result_loop(True)
+                continue
+        elif DIFFICULTY == 0:
+            if check_lose(my_pac, my_ghost0) or check_lose(my_pac, my_ghost1):
+                pygame.mixer.music.stop()
+                pygame.mixer.Sound.play(PACMAN_DIE_SOUND)
+                sleep(1.5)
+                result_loop(True)
+                continue
+
         if check_win(my_map):
             pygame.mixer.music.stop()
             result_loop(False)
@@ -284,30 +310,49 @@ def game_loop():
         if my_pac.move(direction, my_map) is True:  # True là gặp dot
             pygame.mixer.Sound.play(GAME_EAT_SOUND)
 
-        if ghost_turn:
-            # ghost 0 di chuyển
+        if my_ghost0.turn_curr == my_ghost0.turn_move:
+            # ghost 0 di chuyển khi tới lượt của nó
             start0 = (my_ghost0.cord_y, my_ghost0.cord_x)
             end = (my_pac.cord_y, my_pac.cord_x)
             path0 = astar(my_map.grid, start0, end)
             if path0 is not None:
                 actions = get_actions_from_path(path0)
                 my_ghost0.move(actions[0])
+                my_ghost0.turn_curr = 0
             else:
                 pass
+        else:
+            my_ghost0.turn_curr += 1
 
-            # ghost 1 di chuyển
+        if my_ghost1.turn_curr == my_ghost1.turn_move:
+            # ghost 1 di chuyển khi tới lượt của nó, mỗi ghost có turn_move khác nhau nên
+            # tốc độ di chuyển sẽ đa dạng
             start1 = (my_ghost1.cord_y, my_ghost1.cord_x)
             end = (my_pac.cord_y, my_pac.cord_x)
             path1 = astar(my_map.grid, start1, end)
             if path1 is not None:
                 actions = get_actions_from_path(path1)
                 my_ghost1.move(actions[0])
+                my_ghost1.turn_curr = 0
             else:
                 pass
             # chỉnh cho frame sau ghost đứng yên vì không làm thay đổi tọa độ
-            ghost_turn = False
         else:
-            ghost_turn = True
+            my_ghost1.turn_curr += 1
+
+        if DIFFICULTY == 1:
+            if my_ghost2.turn_curr == my_ghost2.turn_move:
+                start2 = (my_ghost2.cord_y, my_ghost2.cord_x)
+                end = (my_pac.cord_y, my_pac.cord_x)
+                path2 = astar(my_map.grid, start2, end)
+                if path2 is not None:
+                    actions = get_actions_from_path(path2)
+                    my_ghost2.move(actions[0])
+                    my_ghost2.turn_curr = 0
+                else:
+                    pass
+            else:
+                my_ghost2.turn_curr += 1
         clock.tick(FPS)
 
 
