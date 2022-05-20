@@ -1,6 +1,7 @@
 # region CREDIT
 # 8 Bit Adventure - By David Renda https://www.fesliyanstudios.com/royalty-free-music/downloads-c/8-bit-music/6
 # Boss Time - By David Renda https://www.fesliyanstudios.com/royalty-free-music/downloads-c/8-bit-music/6
+# AI learn to play PacMan || Part 1 - Code Bullet https://www.youtube.com/watch?v=qwhXIzNrb9w -> This is the source of the ideas to code this game
 # endregion
 
 import pygame
@@ -50,6 +51,7 @@ PACMAN_DIE_SOUND = pygame.mixer.Sound(os.path.join('sound', 'die.mp3'))
 pygame.mixer.music.load(os.path.join('sound', 'playing.mp3'))
 
 # endregion
+
 # region IMAGE
 WALL_EASY = pygame.image.load('img/brick.jpg')
 WALL_HARD = pygame.image.load('img/neon.jpg')
@@ -230,7 +232,6 @@ clock = pygame.time.Clock()
 direction = "RIGHT"
 gaming = False
 resulting = False
-#my_ghost2 = Ghost()
 
 # region LOOPS
 
