@@ -3,8 +3,6 @@
 # Boss Time - By David Renda https://www.fesliyanstudios.com/royalty-free-music/downloads-c/8-bit-music/6
 # endregion
 
-from ast import arg
-from tarfile import BLOCKSIZE
 import pygame
 import pygame_menu
 from pygame_menu import sound
@@ -56,7 +54,7 @@ pygame.mixer.music.load(os.path.join('sound', 'playing.mp3'))
 WALL_EASY = pygame.image.load('img/brick.jpg')
 WALL_HARD = pygame.image.load('img/neon.jpg')
 BLANK = pygame.image.load('img/black.png')
-DOT = pygame.image.load('img/dot.png')
+DOT = pygame.image.load('img/bigdot.png')
 PACMAN = pygame.image.load('img/pac.png')
 PACMAN2 = pygame.image.load('img/pac2.png')
 GHOST0 = pygame.image.load('img/ghost0.png')
